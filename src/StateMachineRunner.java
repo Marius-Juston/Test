@@ -1,17 +1,43 @@
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.jar.JarEntry;
+
+
+enum Test {
+	@StartState
+	START {
+		public Test run() {
+			System.out.println("ending");
+			return END;
+		}
+	}, END;
+
+	@StateMachine(methodType = StateMachine.MethodType.INIT)
+	public void init() {System.out.println("intitializing");}
+
+
+	@StateMachine(methodType = StateMachine.MethodType.RUN)
+	public Test run() {
+		System.out.println("starting");
+		return END;
+	}
+
+	@StateMachine(methodType = StateMachine.MethodType.END)
+	public void end() {
+		System.out.println("The END!!");
+	}
+}
 
 public class StateMachineRunner {
 
-	public static<T extends Enum> void run(Class enumStateMachine,String startMethod, String runMethod, String endMethodName, T state) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+	public synchronized static <T extends Enum> void run(Class enumStateMachine, String startMethod, String runMethod, String endMethodName, T state) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 		assertIfMethodsExists(enumStateMachine, startMethod, runMethod, endMethodName);
 		assertIfRunMethodReturnsItself(state, runMethod);
 
 		T previousState = null;
 		Method[] methods= null;
 
+//		TODO improve loop to be more robust
 		for (;;)
 		{
 			if (state != previousState)
@@ -103,9 +129,8 @@ public class StateMachineRunner {
 	 * Checks if the needed methods are avaliable in the Enum
 	 * @param tClass
 	 * @param methodNames
-	 * @param <T>
 	 */
-	private static  <T extends Enum> void assertIfMethodsExists(Class tClass, String... methodNames)
+	private static void assertIfMethodsExists(Class tClass, String... methodNames)
 	{
 		ArrayList<String> absentMethodNames = new ArrayList<>();
 
@@ -135,33 +160,10 @@ public class StateMachineRunner {
 	}
 
 	public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-		run(Test.class,"init", "run", "end", Test.START);
+
+//		run(Test.class,"init", "run", "end", Test.START);
+
 	}
 
 
-}
-
-enum Test {
-	START
-			{public Test run()
-			{
-				System.out.println("ending");
-				return END;
-			}}, END;
-
-	public void init()
-	{System.out.println("intitializing");}
-
-
-	public Test run()
-	{
-		System.out.println("starting");
-		return END;
-	}
-
-
-	public void end()
-	{
-		System.out.println("The END!!");
-	}
 }
